@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { FigmaService } from "./services/figma";
+import { YApiService } from "./services/yapi";
 import express, { Request, Response } from "express";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { IncomingMessage, ServerResponse } from "http";
@@ -9,10 +10,12 @@ import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 export class FigmaMcpServer {
   private readonly server: McpServer;
   private readonly figmaService: FigmaService;
+  private readonly yapiService: YApiService;
   private sseTransport: SSEServerTransport | null = null;
 
-  constructor(figmaApiKey: string) {
+  constructor(figmaApiKey: string, yapiBaseUrl: string, yapiToken: string) {
     this.figmaService = new FigmaService(figmaApiKey);
+    this.yapiService = new YApiService(yapiBaseUrl, yapiToken);
     this.server = new McpServer({
       name: "Figma MCP Server",
       version: "0.1.4",
@@ -22,6 +25,56 @@ export class FigmaMcpServer {
   }
 
   private registerTools(): void {
+    // Tool to get api interface information
+    this.server.tool(
+      "get_api",
+      "获取YApi中特定接口的详细信息",
+      {
+        id: z.string().describe("YApi接口的ID"),
+      },
+      async ({ id }) => {
+        try {
+          console.log(`获取API接口: ${id}`);
+          const apiInterface = await this.yapiService.getApiInterface(id);
+          console.log(`成功获取API接口: ${apiInterface.title || id}`);
+          
+          // 格式化返回数据，使其更易于阅读
+          const formattedResponse = {
+            基本信息: {
+              接口ID: apiInterface._id,
+              接口名称: apiInterface.title,
+              接口路径: apiInterface.path,
+              请求方式: apiInterface.method,
+              接口描述: apiInterface.desc
+            },
+            请求参数: {
+              URL参数: apiInterface.req_params,
+              查询参数: apiInterface.req_query,
+              请求头: apiInterface.req_headers,
+              请求体类型: apiInterface.req_body_type,
+              表单参数: apiInterface.req_body_form
+            },
+            响应信息: {
+              响应类型: apiInterface.res_body_type,
+              响应内容: apiInterface.res_body
+            },
+            其他信息: {
+              接口文档: apiInterface.markdown
+            }
+          };
+          
+          return {
+            content: [{ type: "text", text: JSON.stringify(formattedResponse, null, 2) }],
+          };
+        } catch (error) {
+          console.error(`获取API接口 ${id} 时出错:`, error);
+          return {
+            content: [{ type: "text", text: `获取API接口出错: ${error}` }],
+          };
+        }
+      },
+    );
+
     // Tool to get file information
     this.server.tool(
       "get_file",
