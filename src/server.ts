@@ -27,12 +27,13 @@ export class FigmaMcpServer {
   private registerTools(): void {
     // Tool to get api interface information
     this.server.tool(
-      "get_api",
+      "get_api_desc",
       "获取YApi中特定接口的详细信息",
       {
-        id: z.string().describe("YApi接口的ID"),
+        apiId: z.string().describe("YApi接口的ID；如连接/project/1/interface/api/66，则ID为66"),
       },
-      async ({ id }) => {
+      async ({ apiId }) => {
+        const id = apiId;
         try {
           console.log(`获取API接口: ${id}`);
           const apiInterface = await this.yapiService.getApiInterface(id);
