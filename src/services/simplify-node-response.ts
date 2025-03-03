@@ -22,7 +22,11 @@ import { hasValue, isRectangle, isStrokeWeights, isTruthy } from "~/utils/identi
 export interface SimplifiedDesign {
   name: string;
   lastModified: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
+  previewImages?: {
+    images?: Record<string, string>;
+    imagesDesc?: string;
+  }; // 后续请求figmaService.getImages追加的附加参数
   nodes: SimplifiedNode[];
 }
 
