@@ -4,10 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  figma-mcp: 'link:'
-  figma-developer-mcp: 'link:'
-
 dependencies:
   '@modelcontextprotocol/sdk':
     specifier: ^1.6.0
@@ -35,9 +31,6 @@ dependencies:
     version: 3.24.2
 
 devDependencies:
-  '@figma/rest-api-spec':
-    specifier: ^0.24.0
-    version: 0.24.0
   '@types/express':
     specifier: ^5.0.0
     version: 5.0.0
@@ -696,10 +689,6 @@ packages:
     dependencies:
       '@eslint/core': 0.11.0
       levn: 0.4.1
-    dev: true
-
-  /@figma/rest-api-spec@0.24.0:
-    resolution: {integrity: sha512-c/LHQNzfn8HSuo608TnfHJS8K3Ps61MvDbqTTL+qVx2FCIui7dI3RC2bG2/kSHmQXXKTbgbcAADyU6Rf8YkZbQ==}
     dev: true
 
   /@humanfs/core@0.19.1:

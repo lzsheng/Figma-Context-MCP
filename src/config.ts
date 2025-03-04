@@ -6,12 +6,10 @@ import { hideBin } from "yargs/helpers";
 config();
 
 interface ServerConfig {
-  figmaApiKey: string;
   yapiBaseUrl: string;
   yapiToken: string;
   port: number;
   configSources: {
-    figmaApiKey: "cli" | "env";
     yapiBaseUrl: "cli" | "env" | "default";
     yapiToken: "cli" | "env" | "default";
     port: "cli" | "env" | "default";
@@ -24,7 +22,6 @@ function maskApiKey(key: string): string {
 }
 
 interface CliArgs {
-  "figma-api-key"?: string;
   "yapi-base-url"?: string;
   "yapi-token"?: string;
   port?: number;
@@ -34,10 +31,6 @@ export function getServerConfig(): ServerConfig {
   // Parse command line arguments
   const argv = yargs(hideBin(process.argv))
     .options({
-      "figma-api-key": {
-        type: "string",
-        description: "Figma API key",
-      },
       "yapi-base-url": {
         type: "string",
         description: "YApi服务器基础URL",
@@ -55,26 +48,16 @@ export function getServerConfig(): ServerConfig {
     .parseSync() as CliArgs;
 
   const config: ServerConfig = {
-    figmaApiKey: "",
     yapiBaseUrl: "http://localhost:3000",
     yapiToken: "",
     port: 3333,
     configSources: {
-      figmaApiKey: "env",
       yapiBaseUrl: "default",
       yapiToken: "default",
       port: "default",
     },
   };
 
-  // Handle FIGMA_API_KEY
-  if (argv["figma-api-key"]) {
-    config.figmaApiKey = argv["figma-api-key"];
-    config.configSources.figmaApiKey = "cli";
-  } else if (process.env.FIGMA_API_KEY) {
-    config.figmaApiKey = process.env.FIGMA_API_KEY;
-    config.configSources.figmaApiKey = "env";
-  }
 
   // Handle YAPI_BASE_URL
   if (argv["yapi-base-url"]) {
@@ -103,17 +86,8 @@ export function getServerConfig(): ServerConfig {
     config.configSources.port = "env";
   }
 
-  // Validate configuration
-  if (!config.figmaApiKey) {
-    console.error("FIGMA_API_KEY is required (via CLI argument --figma-api-key or .env file)");
-    process.exit(1);
-  }
-
   // Log configuration sources
   console.log("\nConfiguration:");
-  console.log(
-    `- FIGMA_API_KEY: ${maskApiKey(config.figmaApiKey)} (source: ${config.configSources.figmaApiKey})`,
-  );
   console.log(
     `- YAPI_BASE_URL: ${config.yapiBaseUrl} (source: ${config.configSources.yapiBaseUrl})`,
   );

@@ -1,24 +1,21 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { FigmaService } from "./services/figma";
 import { YApiService } from "./services/yapi";
 import express, { Request, Response } from "express";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { IncomingMessage, ServerResponse } from "http";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-
-export class FigmaMcpServer {
+``
+export class YapiMcpServer {
   private readonly server: McpServer;
-  private readonly figmaService: FigmaService;
   private readonly yapiService: YApiService;
   private sseTransport: SSEServerTransport | null = null;
 
-  constructor(figmaApiKey: string, yapiBaseUrl: string, yapiToken: string) {
-    this.figmaService = new FigmaService(figmaApiKey);
+  constructor(yapiBaseUrl: string, yapiToken: string) {
     this.yapiService = new YApiService(yapiBaseUrl, yapiToken);
     this.server = new McpServer({
-      name: "Figma MCP Server",
-      version: "0.1.4",
+      name: "Yapi MCP Server",
+      version: "0.1.0",
     });
 
     this.registerTools();
@@ -71,78 +68,6 @@ export class FigmaMcpServer {
           console.error(`获取API接口 ${id} 时出错:`, error);
           return {
             content: [{ type: "text", text: `获取API接口出错: ${error}` }],
-          };
-        }
-      },
-    );
-
-    // Tool to get file information
-    // this.server.tool(
-    //   "get_file",
-    //   "Get layout information about an entire Figma file",
-    //   {
-    //     fileKey: z.string().describe("The key of the Figma file to fetch"),
-    //     depth: z.number().optional().describe("How many levels deep to traverse the node tree"),
-    //   },
-    //   async ({ fileKey, depth }) => {
-    //     try {
-    //       console.log(`Fetching file: ${fileKey} (depth: ${depth ?? "default"})`);
-    //       const file = await this.figmaService.getFile(fileKey, depth);
-    //       console.log(`Successfully fetched file: ${file.name}`);
-    //       const { nodes, ...metadata } = file;
-
-    //       // Stringify each node individually to try to avoid max string length error with big files
-    //       const nodesJson = `[${nodes.map((node) => JSON.stringify(node, null, 2)).join(",")}]`;
-    //       const metadataJson = JSON.stringify(metadata, null, 2);
-    //       const resultJson = `{ "metadata": ${metadataJson}, "nodes": ${nodesJson} }`;
-
-    //       return {
-    //         content: [{ type: "text", text: resultJson }],
-    //       };
-    //     } catch (error) {
-    //       console.error(`Error fetching file ${fileKey}:`, error);
-    //       return {
-    //         content: [{ type: "text", text: `Error fetching file: ${error}` }],
-    //       };
-    //     }
-    //   },
-    // );
-
-    // Tool to get node information
-    this.server.tool(
-      "get_node",
-      "Get layout information about a specific node in a Figma file",
-      {
-        fileKey: z.string().describe("The key of the Figma file containing the node"),
-        nodeId: z.string().describe("The ID of the node to fetch"),
-        depth: z.number().optional().describe("How many levels deep to traverse the node tree"),
-      },
-      async ({ fileKey, nodeId, depth }) => {
-        try {
-          console.log(
-            `Fetching node: ${nodeId} from file: ${fileKey} (depth: ${depth ?? "default"})`,
-          );
-          // 获取节点信息
-          let node = await this.figmaService.getNode(fileKey, nodeId, depth);
-          // 获取节点图片
-          const nodeImages = await this.figmaService.getImages(fileKey, [nodeId]);
-
-          if (node.thumbnailUrl) {
-            delete node.thumbnailUrl; // 这张图片没啥用，删掉
-          }
-
-          node.previewImages = nodeImages;
-
-          console.log(
-            `Successfully fetched node: ${node.name} (ids: ${Object.keys(node.nodes).join(", ")})`,
-          );
-          return {
-            content: [{ type: "text", text: JSON.stringify(node, null, 2) }],
-          };
-        } catch (error) {
-          console.error(`Error fetching node ${nodeId} from file ${fileKey}:`, error);
-          return {
-            content: [{ type: "text", text: `Error fetching node: ${error}` }],
           };
         }
       },
